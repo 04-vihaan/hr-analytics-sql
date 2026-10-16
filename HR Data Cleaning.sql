@@ -51,7 +51,7 @@ ADD COLUMN age INT;
 -- Modify Age column.
 
 UPDATE human_resource
-SET age = ABS(age);
+SET age = TIMESTAMPDIFF(YEAR, birthdate, CURDATE());
 
 SELECT 
 min(AGE)AS youngest,

@@ -1,3 +1,4 @@
+-- Active: 1790280869080@@127.0.0.1@3306@mysql
 -- SQL QUERIES QUESTIONS 
 
 USE new_schema;
@@ -45,11 +46,13 @@ SELECT location, count(*)  AS count
 FROM human_resource
 GROUP BY location;
 
--- 5.What is the average length of employment for employees who have been terminated??
+-- 5. What is the average length of employment for employees who have been terminated?
 
-SELECT round(avg(datediff(termdate, hire_date))/365,0)  AS avg_lengh_employment
+SELECT
+    ROUND(AVG(DATEDIFF(termdate, hire_date)) / 365, 0) AS avg_lengh_employment
 FROM human_resource
-WHERE termdate <= curdate();
+WHERE termdate <= CURDATE()
+  AND termdate <> '0000-00-00';
 
 -- 6. How does the gender distribution vary across departments and job titles?
 
@@ -66,20 +69,31 @@ GROUP BY jobtitle
 ORDER BY jobtitle DESC;
 
 
--- 8. Which department has the highest turnover/ternimate rate?
+-- 8. Which department has the highest turnover/termination rate?
 
-SELECT department,
-total_count,
-terminated_count,
-terminated_count/total_count AS termination_rate
-FROM(
-      SELECT department,
-      count(*) AS total_count,
-      SUM(CASE WHEN termdate <= CURDATE() THEN 1 ELSE 0 END) AS terminated_count
-      FROM human_resource
-	  GROUP BY department)
-      AS subquery
-      ORDER BY termination_rate DESC;
+SELECT
+    department,
+    total_count,
+    terminated_count,
+    terminated_count / total_count AS termination_rate
+FROM (
+    SELECT
+        department,
+        COUNT(*) AS total_count,
+        SUM(
+            CASE
+                WHEN termdate <= CURDATE()
+                 AND termdate <> '0000-00-00'
+                THEN 1
+                ELSE 0
+            END
+        ) AS terminated_count
+    FROM human_resource
+    GROUP BY department
+) AS subquery
+ORDER BY termination_rate DESC;
+
+
 
 -- 9 WHAT IS DISTRIBUTION OF EMPLOYEES ACROSS LOCATION BY CITY AND STATE?
 
@@ -88,25 +102,67 @@ FROM human_resource
 GROUP BY location_state
 ORDER BY count DESC;
 
--- 10 HOW HAS THE COMPANY'S EMPLOYEES COUNT CHANGED OVER TIME BASED ON HIRE AND TERM DATE??
- 
- SELECT year, hires, terminations, (hires - terminations) AS net_change,
- round((hires - terminations)/ hires*100,2) AS net_changes_percent
-FROM 
-     (SELECT YEAR (hire_date) AS year,
-     count(*) AS hires,
-     SUM(CASE WHEN  termdate <= CURDATE() THEN 1 ELSE 0 END) AS terminations
-      FROM human_resource
-	  GROUP BY YEAR(hire_date))
-      AS subquery
-      ORDER BY YEAR ASC;
+-- 10. How has the company's employee count changed over time based on hire and termination dates?
+
+SELECT
+    year,
+    hires,
+    terminations,
+    (hires - terminations) AS net_change,
+    ROUND((hires - terminations) / hires * 100, 2) AS net_changes_percent
+FROM (
+    SELECT
+        YEAR(hire_date) AS year,
+        COUNT(*) AS hires,
+        SUM(
+            CASE
+                WHEN termdate <= CURDATE()
+                 AND termdate <> '0000-00-00'
+                THEN 1
+                ELSE 0
+            END
+        ) AS terminations
+    FROM human_resource
+    GROUP BY YEAR(hire_date)
+) AS subquery
+ORDER BY year ASC;
+
       
--- 11 WHAT IS THE TENURE DISTRIBUTION FOR EACH DEPARTMENT??
-     
-SELECT department, round(avg(datediff(termdate,hire_date)/365),0) AS avg_tenure
+-- 11. What is the tenure distribution for each department?
+
+SELECT
+    department,
+    ROUND(AVG(DATEDIFF(termdate, hire_date) / 365), 0) AS avg_tenure
 FROM human_resource
-WHERE termdate <= curdate() 
+WHERE termdate <= CURDATE()
+  AND termdate <> '0000-00-00'
 GROUP BY department;
-     
-     
-     
+
+
+
+SELECT
+    TABLE_SCHEMA AS database_name,
+    TABLE_NAME AS table_name
+FROM information_schema.tables
+WHERE TABLE_SCHEMA NOT IN (
+    'mysql',
+    'information_schema',
+    'performance_schema',
+    'sys'
+)
+ORDER BY TABLE_SCHEMA, TABLE_NAME;
+
+
+-- 12. What is the termination rate difference between Headquarters and Remote locations?
+SELECT location,
+       count(*) AS total_count,
+       SUM(CASE WHEN termdate <= CURDATE() AND termdate <> '0000-00-00' THEN 1 ELSE 0 END) AS terminated_count,
+       SUM(CASE WHEN termdate <= CURDATE() AND termdate <> '0000-00-00' THEN 1 ELSE 0 END) / count(*) AS termination_rate
+FROM human_resource
+GROUP BY location;
+
+
+
+
+
+
