@@ -140,24 +140,12 @@ GROUP BY department;
 
 
 
-SELECT
-    TABLE_SCHEMA AS database_name,
-    TABLE_NAME AS table_name
-FROM information_schema.tables
-WHERE TABLE_SCHEMA NOT IN (
-    'mysql',
-    'information_schema',
-    'performance_schema',
-    'sys'
-)
-ORDER BY TABLE_SCHEMA, TABLE_NAME;
-
 
 -- 12. What is the termination rate difference between Headquarters and Remote locations?
 SELECT location,
        count(*) AS total_count,
        SUM(CASE WHEN termdate <= CURDATE() AND termdate <> '0000-00-00' THEN 1 ELSE 0 END) AS terminated_count,
-       SUM(CASE WHEN termdate <= CURDATE() AND termdate <> '0000-00-00' THEN 1 ELSE 0 END) / count(*) AS termination_rate
+       ROUND(SUM(CASE WHEN termdate <= CURDATE() AND termdate <> '0000-00-00' THEN 1 ELSE 0 END) / count(*) * 100, 2) AS termination_rate
 FROM human_resource
 GROUP BY location;
 

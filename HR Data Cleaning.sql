@@ -2,11 +2,8 @@ USE new_schema;
 
 SELECT * FROM human_resource;
 
--- change column name
-ALTER TABLE human_resource
-CHANGE COLUMN ï»¿id emp_id varchar(20);
 
-DESCRIBE human_resource;
+
 
 -- Modify birthdate columns data.
 SET sql_safe_updates = 0;
