@@ -53,11 +53,7 @@ ADD COLUMN age INT;
 UPDATE human_resource
 SET age = TIMESTAMPDIFF(YEAR, birthdate, CURDATE());
 
-SELECT 
-min(AGE)AS youngest,
-max(AGE) AS oldest
-FROM human_resource;
-
+UPDATE human_resource SET age = NULL WHERE age < 18;
 
 
 
