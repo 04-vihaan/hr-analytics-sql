@@ -1,11 +1,9 @@
 USE new_schema;
 
-SELECT * FROM human_resource;
-
-
 
 
 -- Modify birthdate columns data.
+SET @as_of = '2026-07-24';
 SET sql_safe_updates = 0;
 UPDATE human_resource
 SET birthdate = CASE
@@ -17,7 +15,7 @@ END;
 ALTER TABLE human_resource
 MODIFY COLUMN birthdate DATE;
 
--- Modity hiredate column data.
+-- Modifyy hiredate column data.
 UPDATE human_resource
 SET hire_date = CASE
 	WHEN hire_date LIKE '%/%' THEN date_format(str_to_date(hire_date, '%m/%d/%Y'), '%Y-%m-%d')
@@ -48,10 +46,8 @@ ADD COLUMN age INT;
 -- Modify Age column.
 
 UPDATE human_resource
-SET age = TIMESTAMPDIFF(YEAR, birthdate, CURDATE());
-
+SET age = TIMESTAMPDIFF(YEAR, birthdate, @as_of);
 UPDATE human_resource SET age = NULL WHERE age < 18;
-
 
 
 

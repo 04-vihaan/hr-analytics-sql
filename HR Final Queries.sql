@@ -4,6 +4,7 @@ USE new_schema;
 
 
 -- 1. What is the gender breakdown of employees in the company?
+SET @as_of = '2026-07-24';
 
 SELECT gender ,count(*) AS count
 FROM human_resource
@@ -48,12 +49,12 @@ GROUP BY location;
 -- 5. What is the average length of employment for employees who have been terminated?
 
 SELECT
-    ROUND(AVG(DATEDIFF(termdate, hire_date)) / 365, 1) AS avg_lengh_employment
+    ROUND(AVG(DATEDIFF(termdate, hire_date)) / 365, 1) AS avg_length_employment
 FROM human_resource
-WHERE termdate <= CURDATE()
+WHERE termdate <= @as_of
   AND termdate <> '0000-00-00';
 
--- 6. How does the gender distribution vary across departments and job titles?
+-- 6. How does the gender distribution vary across departments?
 
 SELECT department,gender, count(*) AS COUNT
 FROM human_resource
@@ -74,14 +75,14 @@ SELECT
     department,
     total_count,
     terminated_count,
-    terminated_count / total_count AS termination_rate
+    ROUND((terminated_count / total_count) * 100, 1) AS termination_rate
 FROM (
     SELECT
         department,
         COUNT(*) AS total_count,
         SUM(
             CASE
-                WHEN termdate <= CURDATE()
+                WHEN termdate <= @as_of
                  AND termdate <> '0000-00-00'
                 THEN 1
                 ELSE 0
@@ -101,7 +102,6 @@ FROM human_resource
 GROUP BY location_state
 ORDER BY count DESC;
 
--- 10. How has the company's employee count changed over time based on hire and termination dates?
 
 -- 10. How has the company's employee count changed over time based on hire and termination dates?
 WITH hires AS (
@@ -112,7 +112,7 @@ WITH hires AS (
 terms AS (
     SELECT YEAR(termdate) yr, COUNT(*) terminations 
     FROM human_resource          
-    WHERE termdate <= CURDATE() AND termdate <> '0000-00-00' 
+    WHERE termdate <= @as_of AND termdate <> '0000-00-00' 
     GROUP BY yr
 ),
 years AS (
@@ -128,13 +128,13 @@ LEFT JOIN terms t ON t.yr = y.yr
 ORDER BY y.yr;
 
       
--- 11. What is the tenure distribution for each department?
+-- 11. What is the average tenure of terminated employees?
 
 SELECT
     department,
     ROUND(AVG(DATEDIFF(termdate, hire_date) / 365), 1) AS avg_tenure
 FROM human_resource
-WHERE termdate <= CURDATE()
+WHERE termdate <= @as_of
   AND termdate <> '0000-00-00'
 GROUP BY department;
 
@@ -144,24 +144,17 @@ GROUP BY department;
 -- 12. What is the termination rate difference between Headquarters and Remote locations?
 SELECT location,
        count(*) AS total_count,
-       SUM(CASE WHEN termdate <= CURDATE() AND termdate <> '0000-00-00' THEN 1 ELSE 0 END) AS terminated_count,
-       SUM(CASE WHEN termdate <= CURDATE() AND termdate <> '0000-00-00' THEN 1 ELSE 0 END) / count(*) AS termination_rate
+       SUM(CASE WHEN termdate <= @as_of  AND termdate <> '0000-00-00' THEN 1 ELSE 0 END) AS terminated_count,
+       ROUND(SUM(CASE WHEN termdate <= @as_of AND termdate <> '0000-00-00' THEN 1 ELSE 0 END) / count(*) * 100, 1) AS termination_rate
 FROM human_resource
 GROUP BY location;
 
 
--- 13. What is the termination rate by tenure band?
-SELECT
-    CASE
-        WHEN TIMESTAMPDIFF(YEAR, hire_date, IF(termdate <= CURDATE() AND termdate <> '0000-00-00', termdate, CURDATE())) <= 1 THEN '0-1 yr'
-        WHEN TIMESTAMPDIFF(YEAR, hire_date, IF(termdate <= CURDATE() AND termdate <> '0000-00-00', termdate, CURDATE())) <= 3 THEN '1-3 yrs'
-        WHEN TIMESTAMPDIFF(YEAR, hire_date, IF(termdate <= CURDATE() AND termdate <> '0000-00-00', termdate, CURDATE())) <= 5 THEN '3-5 yrs'
-        ELSE '5+ yrs'
-    END AS tenure_band,
-    COUNT(*) AS total_count,
-    SUM(CASE WHEN termdate <= CURDATE() AND termdate <> '0000-00-00' THEN 1 ELSE 0 END) AS terminated_count,
-    ROUND(SUM(CASE WHEN termdate <= CURDATE() AND termdate <> '0000-00-00' THEN 1 ELSE 0 END) / COUNT(*) * 100, 1) AS termination_rate
+-- 13. Share of each hire-year cohort that left within 3 years
+SELECT YEAR(hire_date) AS cohort, 
+       COUNT(*) AS hired,       
+       ROUND(100 * SUM(termdate <> '0000-00-00' AND termdate <= hire_date + INTERVAL 3 YEAR) / COUNT(*), 1) AS pct_left_within_3y
 FROM human_resource
-GROUP BY tenure_band
-ORDER BY tenure_band;
+GROUP BY cohort 
+ORDER BY cohort;
 
