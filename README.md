@@ -19,6 +19,18 @@ CTEs, LEFT JOINs, CASE statements, date/time functions, subqueries, and `GROUP B
 * **Data Cutoff:** The extract contains no hire dates after Dec 2020. Post-2020 headcount shrinkage trends in the data cannot be trusted as real business trends.
 * **Birthdate Errors:** 967 birthdates had two-digit years parsed into future dates (causing negative ages). Ages `< 18` were set to `NULL` and bucketed as `Unknown`.
 
+
+## Power BI Dashboards
+**Note:** This dashboard provides descriptive historical demographics (75.25% Headquarters vs 24.75% Remote) and separation distributions across departments. It profiles historical separation rates rather than predicting causal factors for attrition.
+
+### Workforce Demographics
+![HR Age and Gender Distribution](images/hr-demographics-1.jpeg)
+
+### Headquarters vs Remote & Diversity
+![HR Headquarters vs Remote](images/hr-demographics-2.jpeg)
+
+
+
 ### How to Run
 1. Import `Human Resources.csv` into a MySQL schema.
 2. Run `HR Data Cleaning.sql` (Note: if your CSV importer retains the UTF-8 BOM, you may need to strip `ï»¿` from the ID column).
