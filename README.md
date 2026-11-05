@@ -23,10 +23,10 @@ CTEs, LEFT JOINs, CASE statements, date/time functions, subqueries, and `GROUP B
 ## Power BI Dashboards
 **Note:** This dashboard provides descriptive historical demographics (75.25% Headquarters vs 24.75% Remote) and separation distributions across departments. It profiles historical separation rates rather than predicting causal factors for attrition.
 
-### Workforce Demographics
+### Headquarters vs Remote & Diversity
 ![HR Age and Gender Distribution](images/hr-demographics-1.jpeg)
 
-### Headquarters vs Remote & Diversity
+### Workforce Demographics
 ![HR Headquarters vs Remote](images/hr-demographics-2.jpeg)
 
 
